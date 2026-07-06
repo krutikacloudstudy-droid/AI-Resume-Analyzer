@@ -1,0 +1,252 @@
+{% extends "layout.html" %}
+
+{% block title %}Analysis Result - {{ app_name }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container result-container">
+
+  <div class="result-header">
+    <div>
+      <span class="eyebrow"><i class="bi bi-file-earmark-check-fill me-1"></i> Analysis Complete</span>
+      <h1>{{ analysis.candidate_name or "Candidate" }}</h1>
+      <p class="text-muted">Source file: {{ record.filename }}</p>
+    </div>
+    <div class="result-actions">
+      <a href="{{ url_for('download_report', analysis_id=record.id) }}" class="btn btn-outline-glass">
+        <i class="bi bi-download me-2"></i>Download Report
+      </a>
+      <a href="{{ url_for('dashboard') }}" class="btn btn-gradient">
+        <i class="bi bi-arrow-repeat me-2"></i>Analyze Another
+      </a>
+    </div>
+  </div>
+
+  <!-- SCORES -->
+  <div class="row g-4">
+    <div class="col-md-6">
+      <div class="glass-card score-card">
+        <div class="score-ring" style="--score: {{ analysis.resume_score or 0 }};">
+          <span>{{ analysis.resume_score or 0 }}</span>
+        </div>
+        <div>
+          <h5>Resume Score</h5>
+          <p>Overall quality, clarity, and structure of your resume.</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="glass-card score-card">
+        <div class="score-ring score-ring-alt" style="--score: {{ analysis.ats_score or 0 }};">
+          <span>{{ analysis.ats_score or 0 }}</span>
+        </div>
+        <div>
+          <h5>ATS Score</h5>
+          <p>How well your resume performs against Applicant Tracking Systems.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUMMARY -->
+  <div class="glass-card section-card mt-4">
+    <h5><i class="bi bi-person-lines-fill me-2"></i>Experience Summary</h5>
+    <p class="mb-0">{{ analysis.experience_summary or "Not Found" }}</p>
+  </div>
+
+  <!-- SKILLS -->
+  <div class="row g-4 mt-1">
+    <div class="col-lg-4">
+      <div class="glass-card section-card h-100">
+        <h5><i class="bi bi-cpu-fill me-2"></i>Technical Skills</h5>
+        <div class="chip-group">
+          {% for skill in analysis.technical_skills %}
+            <span class="chip chip-found">{{ skill }}</span>
+          {% else %}
+            <p class="text-muted small mb-0">Not Found</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <div class="glass-card section-card h-100">
+        <h5><i class="bi bi-people-fill me-2"></i>Soft Skills</h5>
+        <div class="chip-group">
+          {% for skill in analysis.soft_skills %}
+            <span class="chip chip-soft">{{ skill }}</span>
+          {% else %}
+            <p class="text-muted small mb-0">Not Found</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <div class="glass-card section-card h-100">
+        <h5><i class="bi bi-exclamation-triangle-fill me-2"></i>Missing Skills</h5>
+        <div class="chip-group">
+          {% for skill in analysis.missing_skills %}
+            <span class="chip chip-missing">{{ skill }}</span>
+          {% else %}
+            <p class="text-muted small mb-0">None detected</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROJECTS / EDUCATION / CERTS -->
+  <div class="row g-4 mt-1">
+    <div class="col-lg-4">
+      <div class="glass-card section-card h-100">
+        <h5><i class="bi bi-kanban-fill me-2"></i>Projects</h5>
+        <ul class="clean-list">
+          {% for p in analysis.projects %}<li>{{ p }}</li>{% else %}<li class="text-muted">Not Found</li>{% endfor %}
+        </ul>
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <div class="glass-card section-card h-100">
+        <h5><i class="bi bi-mortarboard-fill me-2"></i>Education</h5>
+        <ul class="clean-list">
+          {% for e in analysis.education %}<li>{{ e }}</li>{% else %}<li class="text-muted">Not Found</li>{% endfor %}
+        </ul>
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <div class="glass-card section-card h-100">
+        <h5><i class="bi bi-patch-check-fill me-2"></i>Certifications</h5>
+        <ul class="clean-list">
+          {% for c in analysis.certifications %}<li>{{ c }}</li>{% else %}<li class="text-muted">Not Found</li>{% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXPERIENCE -->
+  <div class="glass-card section-card mt-4">
+    <h5><i class="bi bi-briefcase-fill me-2"></i>Work Experience</h5>
+    {% if analysis.experience %}
+      <div class="table-responsive">
+        <table class="table table-dark-glass align-middle">
+          <thead>
+            <tr>
+              <th>Role</th>
+              <th>Company</th>
+              <th>Duration</th>
+              <th>Highlights</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for exp in analysis.experience %}
+              <tr>
+                <td>{{ exp.role }}</td>
+                <td>{{ exp.company }}</td>
+                <td>{{ exp.duration }}</td>
+                <td>{{ exp.highlights }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p class="text-muted mb-0">No work experience detected.</p>
+    {% endif %}
+  </div>
+
+  <!-- JOB ROLES + SALARY -->
+  <div class="row g-4 mt-1">
+    <div class="col-lg-6">
+      <div class="glass-card section-card h-100">
+        <h5><i class="bi bi-signpost-2-fill me-2"></i>Suggested Job Roles</h5>
+        {% for role in analysis.suggested_job_roles %}
+          <div class="role-row">
+            <span class="role-name">{{ role.role }}</span>
+            <div class="mock-bar">
+              <div class="mock-fill" style="width: {{ role.match_percent }}%;"></div>
+            </div>
+            <span class="role-match">{{ role.match_percent }}%</span>
+          </div>
+        {% else %}
+          <p class="text-muted mb-0">Not Found</p>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="glass-card section-card h-100">
+        <h5><i class="bi bi-cash-coin me-2"></i>Salary Estimation</h5>
+        {% set salary = analysis.salary_estimation or {} %}
+        <div class="salary-grid">
+          <div class="salary-item">
+            <p class="salary-label">Entry Level</p>
+            <p class="salary-value">{{ salary.entry_level or "N/A" }} {{ salary.currency or "" }}</p>
+          </div>
+          <div class="salary-item">
+            <p class="salary-label">Mid Level</p>
+            <p class="salary-value">{{ salary.mid_level or "N/A" }} {{ salary.currency or "" }}</p>
+          </div>
+          <div class="salary-item">
+            <p class="salary-label">Senior Level</p>
+            <p class="salary-value">{{ salary.senior_level or "N/A" }} {{ salary.currency or "" }}</p>
+          </div>
+        </div>
+        <p class="text-muted small mt-2 mb-0">{{ salary.note or "" }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROADMAP -->
+  <div class="glass-card section-card mt-4">
+    <h5><i class="bi bi-map-fill me-2"></i>Career Roadmap</h5>
+    <div class="roadmap-track">
+      {% for stage in analysis.career_roadmap %}
+        <div class="roadmap-step">
+          <div class="roadmap-dot"></div>
+          <h6>{{ stage.stage }}</h6>
+          <p>{{ stage.action }}</p>
+        </div>
+      {% else %}
+        <p class="text-muted mb-0">Not Found</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- IMPROVEMENTS -->
+  <div class="glass-card section-card mt-4">
+    <h5><i class="bi bi-tools me-2"></i>Resume Improvements</h5>
+    <ul class="clean-list checklist">
+      {% for imp in analysis.resume_improvements %}
+        <li><i class="bi bi-check2-circle me-2"></i>{{ imp }}</li>
+      {% else %}
+        <li class="text-muted">No suggestions - great resume!</li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  <!-- INTERVIEW QUESTIONS -->
+  <div class="glass-card section-card mt-4 mb-5">
+    <h5><i class="bi bi-chat-quote-fill me-2"></i>Potential Interview Questions</h5>
+    <div class="accordion accordion-glass" id="interviewAccordion">
+      {% for q in analysis.interview_questions %}
+        <div class="accordion-item">
+          <h2 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#q{{ loop.index }}">
+              <span class="badge-category me-2">{{ q.category }}</span> {{ q.question }}
+            </button>
+          </h2>
+          <div id="q{{ loop.index }}" class="accordion-collapse collapse" data-bs-parent="#interviewAccordion">
+            <div class="accordion-body">
+              Practice structuring a clear, concise answer using the STAR method (Situation, Task, Action, Result) where applicable.
+            </div>
+          </div>
+        </div>
+      {% else %}
+        <p class="text-muted mb-0">Not Found</p>
+      {% endfor %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}

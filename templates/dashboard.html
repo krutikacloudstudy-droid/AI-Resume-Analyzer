@@ -1,0 +1,112 @@
+{% extends "layout.html" %}
+
+{% block title %}Dashboard - {{ app_name }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-shell">
+
+  <!-- SIDEBAR -->
+  <aside class="dashboard-sidebar">
+    <div class="sidebar-header">
+      <i class="bi bi-clock-history"></i>
+      <span>Recent Analyses</span>
+    </div>
+    <div class="sidebar-list">
+      {% if history %}
+        {% for item in history %}
+          <a href="{{ url_for('result', analysis_id=item.id) }}" class="sidebar-item">
+            <div class="sidebar-item-icon"><i class="bi bi-file-earmark-person-fill"></i></div>
+            <div class="sidebar-item-info">
+              <p class="sidebar-item-name">{{ item.candidate_name or 'Unnamed Candidate' }}</p>
+              <p class="sidebar-item-meta">{{ item.filename }}</p>
+            </div>
+            <span class="sidebar-item-score">{{ item.resume_score }}</span>
+          </a>
+        {% endfor %}
+      {% else %}
+        <p class="sidebar-empty">No analyses yet. Upload your first resume to get started.</p>
+      {% endif %}
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <section class="dashboard-main">
+    <div class="dashboard-heading">
+      <h1><i class="bi bi-cloud-arrow-up-fill me-2"></i>Upload Your Resume</h1>
+      <p>Drop a PDF resume below and let Gemini AI generate your full career report.</p>
+    </div>
+
+    <form id="uploadForm" action="{{ url_for('analyze') }}" method="POST" enctype="multipart/form-data">
+      <div class="dropzone glass-card" id="dropzone">
+        <input type="file" name="resume" id="resumeInput" accept="application/pdf" hidden>
+
+        <div id="dropzoneIdle" class="dropzone-state">
+          <div class="dropzone-icon"><i class="bi bi-file-earmark-arrow-up"></i></div>
+          <h5>Drag &amp; drop your resume here</h5>
+          <p>or</p>
+          <button type="button" class="btn btn-gradient" id="browseBtn">
+            <i class="bi bi-folder2-open me-2"></i>Browse Files
+          </button>
+          <p class="dropzone-hint">PDF only &bull; Max size 8MB</p>
+        </div>
+
+        <div id="dropzoneFile" class="dropzone-state d-none">
+          <div class="file-preview">
+            <i class="bi bi-file-earmark-pdf-fill file-preview-icon"></i>
+            <div class="file-preview-info">
+              <p id="fileName" class="file-preview-name">resume.pdf</p>
+              <p id="fileSize" class="file-preview-size">0 KB</p>
+            </div>
+            <button type="button" id="removeFileBtn" class="btn-icon" aria-label="Remove file">
+              <i class="bi bi-x-lg"></i>
+            </button>
+          </div>
+          <button type="submit" class="btn btn-gradient w-100 mt-3" id="analyzeBtn">
+            <i class="bi bi-magic me-2"></i>Analyze Resume
+          </button>
+        </div>
+
+        <div id="dropzoneLoading" class="dropzone-state d-none">
+          <div class="loader-ring"></div>
+          <h5 class="mt-3">Analyzing your resume...</h5>
+          <p>Reading content, scoring ATS compatibility, and matching job roles.</p>
+          <div class="progress app-progress">
+            <div class="progress-bar" id="uploadProgress" style="width: 0%;"></div>
+          </div>
+        </div>
+      </div>
+    </form>
+
+    <div class="dashboard-tips row g-3 mt-4">
+      <div class="col-md-4">
+        <div class="tip-card glass-card">
+          <i class="bi bi-check-circle-fill"></i>
+          <p>Use a text-based PDF, not a scanned image, for best results.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="tip-card glass-card">
+          <i class="bi bi-shield-lock-fill"></i>
+          <p>Your file is analyzed in memory and removed right after processing.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="tip-card glass-card">
+          <i class="bi bi-lightning-charge-fill"></i>
+          <p>Analysis typically takes between 15 and 45 seconds.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  window.MAX_UPLOAD_MB = 8;
+</script>
+{% endblock %}
